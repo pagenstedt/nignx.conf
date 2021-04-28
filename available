@@ -2,36 +2,39 @@ fastcgi_cache_path /dev/shm/cache levels=1:2 keys_zone=phpcache:32m inactive=200
 fastcgi_cache_key "$scheme$request_method$host$request_uri";
 
 server {
-
-    if ($host = www.pagenstedt.de) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
-    if ($host = pagenstedt.de) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
     listen 80;
     server_name    pagenstedt.de www.pagenstedt.de 157.230.120.147;
-    return 301 https://$server_name$request_uri;
-
+    return 301 https://pagenstedt.de$request_uri;
 }
 
 server {
     listen [::]:443 ssl http2; 
     listen 443 ssl http2;
-    ssl_certificate /etc/..
-    ssl_certificate_key /etc/..
-    
- #   include /etc/letsencrypt/options-ssl-nginx.conf; 
-    ssl_ciphers 
-    ssl_dhparam /etc/
+    ssl_certificate
+    ssl_certificate_key 
+    ssl_ciphers
+    ssl_dhparam 
     ssl_session_timeout 10m;
     ssl_session_cache shared:SSL:10m;
     ssl_buffer_size 8k;
-    root /var/www/
+    server_name  www.pagenstedt.de;
+    return 301 https://pagenstedt.de$request_uri;
+}
+
+server {
+    listen [::]:443 ssl http2; 
+    listen 443 ssl http2;
+    ssl_certificate
+    ssl_certificate_key
+    ssl_ciphers 
+    ssl_dhparam
+    ssl_session_timeout 10m;
+    ssl_session_cache shared:SSL:10m;
+    ssl_buffer_size 8k;
+    
+    root /var/www/html/wordpress;
     index  index.php index.html index.htm;
-    server_name  pagenstedt.de www.pagenstedt.de;
+    server_name  pagenstedt.de;
 
     client_max_body_size 20M;
 
@@ -70,13 +73,14 @@ server {
     fastcgi_cache_use_stale error timeout updating invalid_header http_500 http_503;
     fastcgi_cache_min_uses 1;
     fastcgi_cache_lock on;
+    # Server Headers
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
     add_header X-Frame-Options SAMEORIGIN;
     add_header X-Content-Type-Options nosniff;
     add_header X-XSS-Protection "1; mode=block";
     add_header Referrer-Policy "strict-origin";
     add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; font-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://ps.w.org https://s.w.org data:;";
-    add_header Permissions-Policy "geolocation=(),midi=(),sync-xhr=(),microphone=(),camera=(),magnetometer=(),gyroscope=(),fullscreen=(self),payment=()";
+    add_header Permissions-Policy "geolocation=(),midi=(),sync-xhr=(),microphone=(),camera=(),magnetometer=(),gyroscope=(),fullscreen=(self),payment=(),interest-cohort=()";
     add_header X-FastCGI-Cache $upstream_cache_status;
     }
     
@@ -90,7 +94,6 @@ server {
     expires 365d;
     }
 
- 
 location = /robots.txt {
     allow all;
     log_not_found off;
@@ -114,6 +117,7 @@ expires 365d;
 rewrite ^/dash/pagensj /dash/matomo.js last;
 rewrite ^/dash/pagensp /dash/matomo.php last;
 
-# Redirects
-    
+# Rewrites
+
+
 }
